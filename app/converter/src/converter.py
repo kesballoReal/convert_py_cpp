@@ -21,7 +21,6 @@ def conversion(code, cppfile):
     includes_written = set()
     
     with open(cppfile, 'w') as cppf:
-        # Scrivi solo gli include necessari una volta
         standard_includes = ['<iostream>', '<string>', '<vector>']
         for include in standard_includes:
             cppf.write(f'#include {include}\n')
@@ -32,12 +31,12 @@ def conversion(code, cppfile):
         cppf.write('\n')
         
         for line in lines:
-            print(f"Processing line: {line}")  # Debug print
+            print(f"Processing line: {line}")
             
             if line.startswith('print("') and line.endswith('")'):
                 print_content = convert_prints(line)
                 cppf.write(f'    std::cout << "{print_content}" << std::endl;\n')
-                print(f"Converted print statement: {print_content}")  # Debug print
+                print(f"\nConverted print statement: {print_content}")
             elif line.startswith('print(') and line.endswith(')'):
                 print_content = convert_prints_variables(line)
                 cppf.write(f'    std::cout << {print_content} << std::endl;\n')
@@ -45,11 +44,11 @@ def conversion(code, cppfile):
                 if 'input(' in line:
                     cpp_input = convert_input(line)
                     cppf.write(f'{cpp_input}\n')
-                    print(f"Converted input statement: {cpp_input}")  # Debug print
+                    print(f"\nConverted input statement: {cpp_input}")
                 else:
                     cpp_assignment = convert_assignment(line)
                     cppf.write(f'    {cpp_assignment}\n')
-                    print(f"Converted assignment: {cpp_assignment}")  # Debug print
+                    print(f"\nConverted assignment: {cpp_assignment}")
             elif not line.startswith('import') and not line.startswith('print('):
                 cppf.write(f'    // {line}\n')
         
@@ -57,31 +56,31 @@ def conversion(code, cppfile):
         cppf.write("}\n")
 
 def convert_prints(current_line):
-    print(f"Debug convert_prints input: {current_line}")  # Debug print
+    print(f"\nDebug convert_prints input: {current_line}")
     start_idx = current_line.index('"') + 1
     end_idx = current_line.rindex('"')
     
     if start_idx < end_idx:
         print_content = current_line[start_idx:end_idx]
-        print(f"Debug convert_prints output: {print_content}")  # Debug print
+        print(f"\nDebug convert_prints output: {print_content}")
         return print_content
     else:
         raise ValueError(f"Invalid print format: {current_line}")
 
 def convert_prints_variables(current_line):
-    print(f"Debug convert_prints input: {current_line}")  # Debug print
+    print(f"\nDebug convert_prints input: {current_line}")
     start_idx = current_line.index('(') + 1
     end_idx = current_line.rindex(')')
     
     if start_idx < end_idx:
         print_content = current_line[start_idx:end_idx]
-        print(f"Debug convert_prints output: {print_content}")  # Debug print
+        print(f"\nDebug convert_prints output: {print_content}")
         return print_content
     else:
         raise ValueError(f"Invalid print format: {current_line}")
 
 def convert_assignment(line):
-    print(f"Debug convert_assignment input: {line}")  # Debug print
+    print(f"\nDebug convert_assignment input: {line}")
     var_name, var_value = line.split('=', 1)
     var_name = var_name.strip()
     var_value = var_value.strip()
@@ -104,11 +103,11 @@ def convert_assignment(line):
         raise ValueError(f"Unsupported variable type or value: {var_value}")
     
     cpp_assignment = f'{cpp_type} {var_name} = {cpp_value};'
-    print(f"Debug convert_assignment output: {cpp_assignment}")  # Debug print
+    print(f"\nDebug convert_assignment output: {cpp_assignment}")
     return cpp_assignment
 
 def convert_list(var_value):
-    print(f"Debug convert_list input: {var_value}")  # Debug print
+    print(f"\nDebug convert_list input: {var_value}")
     elements = var_value.strip('[]').split(',')
     elements = [element.strip().strip('"') for element in elements]
     
@@ -126,29 +125,20 @@ def convert_list(var_value):
         cpp_elements = ', '.join(f'"{element}"' for element in elements)
     
     cpp_list = f'{cpp_type}{{{cpp_elements}}}'
-    print(f"Debug convert_list output: {cpp_list}")  # Debug print
+    print(f"\nDebug convert_list output: {cpp_list}")
     return cpp_type, cpp_list
 
 def convert_input(line):
-    print(f"Debug convert_input input: {line}")  # Debug print
-    # Esempio: x = input("Enter value: ")
-    # Traduci in C++:
-    # std::string x;
-    # std::cout << "Enter value:";
-    # std::getline(std::cin, x);
-
-    # Estrai il prompt dalla funzione input()
+    print(f"\nDebug convert_input input: {line}")
     prompt_start = line.index('(') + 1
     prompt_end = line.rindex(')')
     prompt = line[prompt_start:prompt_end].strip().strip('"')
     
-    # Estrai il nome della variabile
     var_name = line.split('=')[0].strip()
     
-    # Genera il codice C++ per la variabile e l'input
     cpp_code = f'    std::string {var_name};\n'
     cpp_code += f'    std::cout << "{prompt}";\n'
     cpp_code += f'    std::getline(std::cin, {var_name});\n'
     
-    print(f"Debug convert_input output: {cpp_code}")  # Debug print
+    print(f"\nDebug convert_input output: {cpp_code}")
     return cpp_code
